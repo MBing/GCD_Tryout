@@ -79,26 +79,32 @@ final class PhotoManager {
         var storedError: NSError?
         
         let downloadGroup = DispatchGroup()
-        
-        for address in [
+        let addresses = [
             PhotoURLString.overlyAttachedGirlfriend,
             PhotoURLString.successKid,
             PhotoURLString.lotsOfFaces
-            ] {
-                let url = URL(string: address)
-                
-                // Call enter() to manually notify the group that a task has started.
-                // You must balance out the number of enter() calls with the number of leave() calls or your app will crash.
-                downloadGroup.enter()
-                let photo = DownloadPhoto(url: url!) { _, error in
-                    if error != nil {
-                        storedError = error
-                    }
-                    
-                    // Here you notify the group that this work is done.
-                    downloadGroup.leave()
+        ]
+        
+        let _ = DispatchQueue.global(qos: .userInitiated)
+        
+        // Example to use concurrency iso regular for loop, but in this case really no benefit, more overhead starting threads.
+        DispatchQueue.concurrentPerform(iterations: addresses.count) { index in
+            let address = addresses[index]
+            
+            let url = URL(string: address)
+            
+            // Call enter() to manually notify the group that a task has started.
+            // You must balance out the number of enter() calls with the number of leave() calls or your app will crash.
+            downloadGroup.enter()
+            let photo = DownloadPhoto(url: url!) { _, error in
+                if error != nil {
+                    storedError = error
                 }
-                PhotoManager.shared.addPhoto(photo)
+                
+                // Here you notify the group that this work is done.
+                downloadGroup.leave()
+            }
+            PhotoManager.shared.addPhoto(photo)
         }
         
         // notify(queue:work:) serves as the asynchronous completion closure.
