@@ -48,17 +48,29 @@ typealias BatchPhotoDownloadingCompletionClosure = (_ error: NSError?) -> Void
 final class PhotoManager {
   private init() {}
   static let shared = PhotoManager()
-  
+  private let concurrentPhotoQueue = DispatchQueue(
+    label: "com.martinbing.GooglyPuff.photoQueue",
+    attributes: .concurrent)
   private var unsafePhotos: [Photo] = []
   
   var photos: [Photo] {
-    return unsafePhotos
+    var photosCopy: [Photo]!
+    // Dispatch synchronously onto the concurrentPhotoQueue to perform the read.
+    concurrentPhotoQueue.sync {
+        // Store a copy of the photo array in photosCopy and return it.
+        photosCopy = self.unsafePhotos
+    }
+    
+    return photosCopy
   }
   
   func addPhoto(_ photo: Photo) {
-    unsafePhotos.append(photo)
-    DispatchQueue.main.async { [weak self] in
-      self?.postContentAddedNotification()
+    concurrentPhotoQueue.async(flags: .barrier) {
+        self.unsafePhotos.append(photo)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.postContentAddedNotification()
+        }
     }
   }
   
