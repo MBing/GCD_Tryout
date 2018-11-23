@@ -83,3 +83,11 @@ Here’s a quick overview of when and where to use `sync`:
 - **Main Queue**: Be VERY careful for the same reasons as above; this situation also has potential for a deadlock condition. This is especially bad on the main queue because the whole app will become unresponsive.
 - **Global Queue**: This is a good candidate to sync work through dispatch barriers or when waiting for a task to complete so you can perform further processing.
 - **Custom Serial Queue**: Be VERY careful in this situation; if you’re running in a queue and call `sync` targeting the same queue, you’ll definitely create a deadlock.
+
+## Dispatch Groups
+
+With dispatch groups you can group together multiple tasks and either wait for them to complete, or receive a notification once they complete. Tasks can be asynchronous or synchronous and can even run on different queues.
+
+`DispatchGroup` manages dispatch groups. The `wait` method blocks your current thread until all the group’s enqueued tasks finish.
+
+Dispatching asynchronously to another queue then blocking work using wait is clumsy. Fortunately, there is a better way. `DispatchGroup` can instead notify you when all the group’s tasks are complete.

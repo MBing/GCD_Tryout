@@ -75,20 +75,45 @@ final class PhotoManager {
   }
   
   func downloadPhotos(withCompletion completion: BatchPhotoDownloadingCompletionClosure?) {
-    var storedError: NSError?
-    for address in [PhotoURLString.overlyAttachedGirlfriend,
-                    PhotoURLString.successKid,
-                    PhotoURLString.lotsOfFaces] {
-                      let url = URL(string: address)
-                      let photo = DownloadPhoto(url: url!) { _, error in
-                        if error != nil {
-                          storedError = error
-                        }
-                      }
-                      PhotoManager.shared.addPhoto(photo)
+    // Since you’re using the synchronous wait method which blocks the current thread,
+    // you use async to place the entire method into a background queue to ensure you don’t block the main thread.
+    DispatchQueue.global(qos: .userInitiated).async {
+        var storedError: NSError?
+        
+        let downloadGroup = DispatchGroup()
+        
+        for address in [
+                PhotoURLString.overlyAttachedGirlfriend,
+                PhotoURLString.successKid,
+                PhotoURLString.lotsOfFaces
+            ] {
+                let url = URL(string: address)
+                
+                // Call enter() to manually notify the group that a task has started.
+                // You must balance out the number of enter() calls with the number of leave() calls or your app will crash.
+                downloadGroup.enter()
+                let photo = DownloadPhoto(url: url!) { _, error in
+                    if error != nil {
+                        storedError = error
+                    }
+                    
+                    // Here you notify the group that this work is done.
+                    downloadGroup.leave()
+                }
+                PhotoManager.shared.addPhoto(photo)
+        }
+        
+        // You call wait() to block the current thread while waiting for tasks’ completion.
+        // This waits forever which is fine because the photos creation task always completes.
+        // You can use wait(timeout:) to specify a timeout and bail out on waiting after a specified time.
+        downloadGroup.wait()
+        
+        // At this point, you are guaranteed that all image tasks have either completed or timed out.
+        // You then make a call back to the main queue to run your completion closure.
+        DispatchQueue.main.async {
+            completion?(storedError)
+        }
     }
-    
-    completion?(storedError)
   }
   
   private func postContentAddedNotification() {
