@@ -29,63 +29,61 @@
 import UIKit
 
 struct PhotoManagerNotification {
-  // Notification when new photo instances are added
-  static let contentAdded = Notification.Name("com.raywenderlich.GooglyPuff.PhotoManagerContentAdded")
-  // Notification when content updates (i.e. Download finishes)
-  static let contentUpdated = Notification.Name("com.raywenderlich.GooglyPuff.PhotoManagerContentUpdated")
+    // Notification when new photo instances are added
+    static let contentAdded = Notification.Name("com.raywenderlich.GooglyPuff.PhotoManagerContentAdded")
+    // Notification when content updates (i.e. Download finishes)
+    static let contentUpdated = Notification.Name("com.raywenderlich.GooglyPuff.PhotoManagerContentUpdated")
 }
 
 struct PhotoURLString {
-  // Photo Credit: Devin Begley, http://www.devinbegley.com/
-  static let overlyAttachedGirlfriend = "https://i.imgur.com/UvqEgCv.png"
-  static let successKid = "https://i.imgur.com/dZ5wRtb.png"
-  static let lotsOfFaces = "https://i.imgur.com/tPzTg7A.jpg"
+    // Photo Credit: Devin Begley, http://www.devinbegley.com/
+    static let overlyAttachedGirlfriend = "https://i.imgur.com/UvqEgCv.png"
+    static let successKid = "https://i.imgur.com/dZ5wRtb.png"
+    static let lotsOfFaces = "https://i.imgur.com/tPzTg7A.jpg"
 }
 
 typealias PhotoProcessingProgressClosure = (_ completionPercentage: CGFloat) -> Void
 typealias BatchPhotoDownloadingCompletionClosure = (_ error: NSError?) -> Void
 
 final class PhotoManager {
-  private init() {}
-  static let shared = PhotoManager()
-  private let concurrentPhotoQueue = DispatchQueue(
-    label: "com.martinbing.GooglyPuff.photoQueue",
-    attributes: .concurrent)
-  private var unsafePhotos: [Photo] = []
-  
-  var photos: [Photo] {
-    var photosCopy: [Photo]!
-    // Dispatch synchronously onto the concurrentPhotoQueue to perform the read.
-    concurrentPhotoQueue.sync {
-        // Store a copy of the photo array in photosCopy and return it.
-        photosCopy = self.unsafePhotos
+    private init() {}
+    static let shared = PhotoManager()
+    private let concurrentPhotoQueue = DispatchQueue(
+        label: "com.martinbing.GooglyPuff.photoQueue",
+        attributes: .concurrent)
+    private var unsafePhotos: [Photo] = []
+    
+    var photos: [Photo] {
+        var photosCopy: [Photo]!
+        // Dispatch synchronously onto the concurrentPhotoQueue to perform the read.
+        concurrentPhotoQueue.sync {
+            // Store a copy of the photo array in photosCopy and return it.
+            photosCopy = self.unsafePhotos
+        }
+        
+        return photosCopy
     }
     
-    return photosCopy
-  }
-  
-  func addPhoto(_ photo: Photo) {
-    concurrentPhotoQueue.async(flags: .barrier) {
-        self.unsafePhotos.append(photo)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.postContentAddedNotification()
+    func addPhoto(_ photo: Photo) {
+        concurrentPhotoQueue.async(flags: .barrier) {
+            self.unsafePhotos.append(photo)
+            
+            DispatchQueue.main.async { [weak self] in
+                self?.postContentAddedNotification()
+            }
         }
     }
-  }
-  
-  func downloadPhotos(withCompletion completion: BatchPhotoDownloadingCompletionClosure?) {
-    // Since you’re using the synchronous wait method which blocks the current thread,
-    // you use async to place the entire method into a background queue to ensure you don’t block the main thread.
-    DispatchQueue.global(qos: .userInitiated).async {
+    
+    func downloadPhotos(withCompletion completion: BatchPhotoDownloadingCompletionClosure?) {
+        // In this new implementation, you don’t need to surround the method in an async call since you’re not blocking the main thread.
         var storedError: NSError?
         
         let downloadGroup = DispatchGroup()
         
         for address in [
-                PhotoURLString.overlyAttachedGirlfriend,
-                PhotoURLString.successKid,
-                PhotoURLString.lotsOfFaces
+            PhotoURLString.overlyAttachedGirlfriend,
+            PhotoURLString.successKid,
+            PhotoURLString.lotsOfFaces
             ] {
                 let url = URL(string: address)
                 
@@ -103,20 +101,15 @@ final class PhotoManager {
                 PhotoManager.shared.addPhoto(photo)
         }
         
-        // You call wait() to block the current thread while waiting for tasks’ completion.
-        // This waits forever which is fine because the photos creation task always completes.
-        // You can use wait(timeout:) to specify a timeout and bail out on waiting after a specified time.
-        downloadGroup.wait()
-        
-        // At this point, you are guaranteed that all image tasks have either completed or timed out.
-        // You then make a call back to the main queue to run your completion closure.
-        DispatchQueue.main.async {
+        // notify(queue:work:) serves as the asynchronous completion closure.
+        // It runs when there are no more items left in the group. You also specify that you want to schedule the completion work to run on the main queue.
+        downloadGroup.notify(queue: DispatchQueue.main) {
             completion?(storedError)
         }
+        
     }
-  }
-  
-  private func postContentAddedNotification() {
-    NotificationCenter.default.post(name: PhotoManagerNotification.contentAdded, object: nil)
-  }
+    
+    private func postContentAddedNotification() {
+        NotificationCenter.default.post(name: PhotoManagerNotification.contentAdded, object: nil)
+    }
 }
