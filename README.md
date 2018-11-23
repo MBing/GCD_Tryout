@@ -91,3 +91,8 @@ With dispatch groups you can group together multiple tasks and either wait for t
 `DispatchGroup` manages dispatch groups. The `wait` method blocks your current thread until all the group’s enqueued tasks finish.
 
 Dispatching asynchronously to another queue then blocking work using wait is clumsy. Fortunately, there is a better way. `DispatchGroup` can instead notify you when all the group’s tasks are complete.
+
+## Canceling Dispatch Blocks
+
+*Be aware that you can only cancel a DispatchWorkItem before it reaches the head of a queue and starts executing.*
+
