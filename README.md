@@ -103,5 +103,12 @@ Tests run on the main thread, so you can assume that every test happens in a ser
 ### Semaphores
 If you want to learn more about semaphores, check out this [detailed discussion](https://greenteapress.com/wp/semaphores/) on semaphore theory. If you're the academic type, you may want to check out [Dining Philosophers Problem](http://en.wikipedia.org/wiki/Dining_philosophers_problem), which is a classic software development problem that uses semaphores.
 
+### Note
+When you implement asynchronous tests in your code, look at `XCTWaiter` first before going down to these low-level APIs. XCTWaiter's APIs are much nicer and provide a lot of powerful technology for asynchronous testing.
+
+## Dispatch Sources
+ You can use a dispatch source to monitor for some type of event. Events can include Unix signals, file descriptors, Mach ports, VFS Nodes, and other obscure stuff.
+
+
 ------------------------
 [Apple Docs](https://developer.apple.com/documentation/dispatch/dispatchworkitem)
