@@ -96,3 +96,12 @@ Dispatching asynchronously to another queue then blocking work using wait is clu
 
 *Be aware that you can only cancel a DispatchWorkItem before it reaches the head of a queue and starts executing.*
 
+## Testing Asynchronous Code
+
+Tests run on the main thread, so you can assume that every test happens in a serial manner. As soon as a given test method completes, **Xcode** considers the test to have finished and moves on to the next test. This means that any asynchronous code from the previous test will continue to run while the next test is running.
+
+### Semaphores
+If you want to learn more about semaphores, check out this [detailed discussion](https://greenteapress.com/wp/semaphores/) on semaphore theory. If you're the academic type, you may want to check out [Dining Philosophers Problem](http://en.wikipedia.org/wiki/Dining_philosophers_problem), which is a classic software development problem that uses semaphores.
+
+------------------------
+[Apple Docs](https://developer.apple.com/documentation/dispatch/dispatchworkitem)
