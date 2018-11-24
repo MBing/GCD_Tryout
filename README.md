@@ -1,6 +1,7 @@
-#  GCD Implementation / Ray Wenderlich tutorial
+#  GCD Implementation (Ray Wenderlich tutorial)
 
-See: https://www.raywenderlich.com/5370-grand-central-dispatch-tutorial-for-swift-4-part-1-2
+See: 
+[Part 1](https://www.raywenderlich.com/5370-grand-central-dispatch-tutorial-for-swift-4-part-1-2) [Part 2](https://www.raywenderlich.com/5371-grand-central-dispatch-tutorial-for-swift-4-part-2-2)
 
 ## Parallelism
 Multi-core devices, on the other hand, execute multiple threads at the same time via parallelism.
