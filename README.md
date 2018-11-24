@@ -112,5 +112,11 @@ When you implement asynchronous tests in your code, look at `XCTWaiter` first be
 Debug example.. See last commit.
 You could use this to debug an object and display data whenever you resume the app. You could also give your app custom security logic to protect itself (or the user's data) when malicious attackers attach a debugger to your application.
 
+## Next steps
+Beyond GCD, I recommend you check out [Operation and OperationQueue Tutorial in Swift](https://www.raywenderlich.com/?p=76341), a concurrency technology that is built on top of GCD. In general, it's best practice to use GCD if you are using simple fire-and-forget tasks. `Operation` offers better control, an implementation for handling maximum concurrent operations, and a more object-oriented paradigm at the cost of speed.
+
+You should also take a look at our[ iOS Concurrency with GCD and Operations](https://www.raywenderlich.com/3648) video tutorial series, which covers a lot of the same topics that we've covered in this tutorial.
+
+
 ------------------------
 [Apple Docs](https://developer.apple.com/documentation/dispatch/dispatchworkitem)
