@@ -32,11 +32,43 @@ import Photos
 private let reuseIdentifier = "photoCell"
 private let backgroundImageOpacity: CGFloat = 0.1
 
+// DEBUG is defined by adding -D DEBUG under Project Settings -> Build Settings -> Swift Compiler - Custom Flags -> Other Swift Flags -> Debug
+#if DEBUG
+
+// You declare a signal variable of type DispatchSourceSignal for use in monitoring Unix signals.
+var signal: DispatchSourceSignal?
+
+// You create a block assigned to the setupSignalHandlerFor global variable
+// that you'll use for one-time setup of your dispatch source.
+private let setupSignalHandlerFor = { (_ object: AnyObject) in
+    let queue = DispatchQueue.main
+    
+    // Here you set up signal. You indicate that you're interested in monitoring the SIGSTOP Unix signal and handling received events on the main queue — you'll discover why shortly.
+    signal = DispatchSource.makeSignalSource(signal: SIGSTOP, queue: queue)
+    
+    // If the dispatch source is successfully created, you register an event handler closure that's invoked whenever you receive the SIGSTOP signal.
+    // Your handler prints a message that includes the class description.
+    signal?.setEventHandler {
+        print("Hi, I am: \(object.description!)")
+    }
+    
+    // All sources start off in the suspended state by default.
+    // Here you tell the dispatch source to resume so it can start monitoring events.
+    signal?.resume()
+}
+#endif
+
+
 final class PhotoCollectionViewController: UICollectionViewController {
   
   // MARK: - Lifecycle
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    // This code invokes the dispatch source's initialization code.
+    #if DEBUG
+    setupSignalHandlerFor(self)
+    #endif
     
     let backgroundImageView = UIImageView(image: UIImage(named:"background"))
     backgroundImageView.alpha = backgroundImageOpacity

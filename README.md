@@ -109,6 +109,8 @@ When you implement asynchronous tests in your code, look at `XCTWaiter` first be
 ## Dispatch Sources
  You can use a dispatch source to monitor for some type of event. Events can include Unix signals, file descriptors, Mach ports, VFS Nodes, and other obscure stuff.
 
+Debug example.. See last commit.
+You could use this to debug an object and display data whenever you resume the app. You could also give your app custom security logic to protect itself (or the user's data) when malicious attackers attach a debugger to your application.
 
 ------------------------
 [Apple Docs](https://developer.apple.com/documentation/dispatch/dispatchworkitem)
